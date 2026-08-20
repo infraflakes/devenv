@@ -1,0 +1,85 @@
+fn update {
+  log `Pulling new changes...`;
+  exec `git pull`;
+}
+
+fn ssh {
+  var shell check_ssh = `test -f "$HOME/.ssh/id_ed25519.pub" && git remote get-url origin 2>/dev/null | grep -q "^https://" && echo "1"`;
+  case $self::check_ssh {
+    `1` {
+      log `Switching url source...`;
+      exec `git remote set-url origin git@github.com:infraflakes/${self::name}.git`;
+    };
+    _ {
+        log `Source is already switched, or not enough condition.`;
+    };
+  };
+}
+
+fn build {
+  case $self::name {
+    `dots` {
+      var shell fish_exist = `test -f ~/.config/fish/config.fish && echo "1"`;
+      case $self::fish_exist {
+        `1` {
+          log `Symlinking with stow...`;
+          exec `stow --adopt -t ${global::confdir} config`;
+          exec `git restore config/fish`;
+        };
+        _ {
+          log `Symlinking with stow...`;
+          exec `stow -t ${global::confdir} config`;
+        };
+      };
+    };
+    `nixenv` {
+      log `Applying home manager flake...`;
+      exec `home-manager switch --flake .#nixenv@container`;
+    };
+  };
+}
+
+fn clean {
+  case $self::name {
+    `dots` {
+      log `Removing stow's symlink...`;
+      exec `stow -D -t ${global::confdir} config`;
+    };
+  };
+}
+
+pr nix [
+  url = `https://github.com/infraflakes/nixenv.git`
+  dir = `${global::home_dir}/nix`
+  sync = `clone`
+] {
+  var string name = `nixenv`;
+  use update;
+  use ssh;
+  use build as eval;
+}
+
+pr dots [
+  url = `https://github.com/infraflakes/dots.git`
+  dir = `${global::home_dir}/dots`
+  sync = `clone`
+] {
+  var string name = `dots`;
+  use update;
+  use build as init;
+  use clean as remove;
+}
+
+run bootstrap {
+  nix::eval;
+  dots::init;
+}
+
+pr devenv [
+  url = `https://github.com/infraflakes/devenv.git`
+  dir = `${global::confdir}/kiru`
+] {
+  var string name = `devenv`;
+  use ssh;
+  use update;
+}

@@ -1,5 +1,7 @@
-var shell workdir = `echo $HOME/Projects`;
+var shell project_dir = `echo $HOME/Projects`;
 var shell confdir= `echo $HOME/.config`;
+var shell home_dir= `echo $HOME`;
 
 import `.kiru/kiru.kiru`;
 import `.kiru/portfolio.kiru`;
+import `.kiru/environment.kiru`;

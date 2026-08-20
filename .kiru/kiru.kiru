@@ -1,4 +1,4 @@
-var string kiru_dir = `${global::workdir}/kiru`;
+var string kiru_dir = `${global::project_dir}/kiru`;
 fn build_kiru {
   log `Building kiru cli!`;
   exec `nix develop -c cargo build --release`;
@@ -16,6 +16,13 @@ fn build_kiru_with_container {
       exec `${global::docker_bin} build --output type=local,dest=bin .`;
     };
   };
+}
+
+fn update_kiru {
+  log `Updating packages...`;
+  exec `cargo update`;
+  exec `cargo upgrade`;
+  exec `nix flake update`;
 }
 
 fn clean_kiru {

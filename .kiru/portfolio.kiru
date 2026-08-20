@@ -1,6 +1,6 @@
 pr portfolio [
   url = `git@github.com:infraflakes/infraflakes.github.io.git`
-  dir = `${global::workdir}/portfolio`
+  dir = `${global::project_dir}/portfolio`
   sync = `clone`
 ] {}
-import `${global::workdir}/portfolio/main.kiru`;
+import `${global::project_dir}/portfolio/main.kiru`;
