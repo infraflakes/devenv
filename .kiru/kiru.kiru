@@ -1,82 +1,8 @@
-var string kiru_dir = `${global::project_dir}/kiru`;
-fn build_kiru {
-  log `Building kiru cli!`;
-  exec `nix develop -c cargo build --release`;
-}
-
-var shell docker_bin = `command -v docker >/dev/null 2>&1 && echo "docker" || { command -v podman >/dev/null 2>&1 && echo "podman"; }`;
-fn build_kiru_with_container {
-  case $global::docker_bin {
-    `` {
-      log `no container runtime found`;
-      exec `exit 1`;
-    };
-    _  {
-      log `building kiru with ${global::docker_bin}`;
-      exec `${global::docker_bin} build --output type=local,dest=bin .`;
-    };
-  };
-}
-
-fn update_kiru {
-  log `Updating packages...`;
-  exec `cargo update`;
-  exec `cargo upgrade`;
-  exec `nix flake update`;
-}
-
-fn clean_kiru {
-  log `Cleaning up artifacts...`;
-  exec `rm -rf bin`;
-  exec `rm -rf result`;
-}
-
-fn fmt_kiru {
-  log `Formatting the codebase...`;
-  exec `nix develop -c cargo clippy --fix --allow-dirty`;
-  exec `nix develop -c cargo fmt`;
-}
-
-fn test_kiru {
-  log `Testing the codebase!`;
-  exec `nix develop -c cargo test`;
-  exec `nix develop -c cargo clippy -- -D warnings`;
-  exec `nix develop -c cargo fmt --check`;
-}
-
-fn fail_kiru {
-  log `Failing the task!`;
-  env [
-    CGO_ENABLED = `0`
-    GOPATH = `$HOME/.local/share/go`
-  ] {
-    exec `go build ./...`;
-  };
-}
-
 pr kiru [
   url = `git@github.com:infraflakes/kiru.git`
-  dir = $global::kiru_dir
+  dir = `${global::project_dir}/kiru`
   sync = `clone`
   branch = `dev`
 ] {
-  use clean_kiru as clean;
-  use build_kiru as build;
-  use fmt_kiru as fmt;
-  use test_kiru as test;
-  use fail_kiru as fail;
-  use build_kiru_with_container as container;
 }
-
-run all_kiru {
-  kiru::test => kiru::build;
-  kiru::fmt => kiru::test;
-  kiru::fail => kiru::fmt;
-}
-run test_kiru {
-  kiru::fmt => kiru::test;
-  kiru::build;
-}
-run ci_kiru {
-  kiru::test => kiru::build;
-}
+import `${global::project_dir}/kiru/main.kiru`;
