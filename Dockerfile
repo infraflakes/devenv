@@ -30,12 +30,6 @@ RUN mkdir -p ~/.config/nix && \
     echo "auto-optimise-store = true" >> ~/.config/nix/nix.conf && \
     echo "max-jobs = auto" >> ~/.config/nix/nix.conf
 
-RUN git clone --depth=1 https://github.com/infraflakes/nixenv
-
-RUN nix run nixpkgs#home-manager -- switch --flake ./nixenv#${USERNAME}@container
-
-RUN rm -r ~/nixenv
-
 RUN curl -sSf https://raw.githubusercontent.com/infraflakes/kiru/main/install.sh | sh
 
 RUN curl -sSf https://raw.githubusercontent.com/infraflakes/sutils/main/install.sh | sh
@@ -44,7 +38,7 @@ RUN git clone --depth=1 https://github.com/infraflakes/devenv ~/.config/kiru
 
 RUN kiru sync
 
-RUN kiru fn init dots
+RUN nix-shell -p stow home-manager --run 'kiru run bootstrap'
 
 ENV SHELL=/bin/fish
 
