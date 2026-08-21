@@ -1,5 +1,5 @@
 pr kiru [
-  url = `git@github.com:infraflakes/kiru.git`
+  url = `https://github.com/infraflakes/kiru.git`
   dir = `${global::project_dir}/kiru`
   sync = `clone`
   branch = `dev`
