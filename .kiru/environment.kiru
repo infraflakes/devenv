@@ -51,7 +51,6 @@ fn clean {
 pr nix [
   url = `https://github.com/infraflakes/nixenv.git`
   dir = `${global::home_dir}/nix`
-  sync = `clone`
 ] {
   var string name = `nixenv`;
   use update;
@@ -62,7 +61,6 @@ pr nix [
 pr dots [
   url = `https://github.com/infraflakes/dots.git`
   dir = `${global::home_dir}/dots`
-  sync = `clone`
 ] {
   var string name = `dots`;
   use update;
