@@ -16,22 +16,17 @@ ENV LC_ALL=en_US.UTF-8
 RUN useradd -m -s /bin/fish -u 1000 $USERNAME && \
     mkdir -m 0755 /nix && chown $USERNAME:$USERNAME /nix
 
+RUN curl -sSfL https://install.lix.systems/lix | sh -s -- install linux --init none --no-confirm \
+    && chown -R $USERNAME:$USERNAME /nix
+
 USER $USERNAME
 WORKDIR /home/$USERNAME
 ENV USER=$USERNAME
 ENV HOME=/home/$USERNAME
-ENV PATH="/home/$USERNAME/.nix-profile/bin:/home/$USERNAME/.local/bin:${PATH}"
 
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
-
-RUN mkdir -p ~/.config/nix && \
-    echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf && \
-    echo "cores = 0" >> ~/.config/nix/nix.conf && \
-    echo "auto-optimise-store = true" >> ~/.config/nix/nix.conf && \
-    echo "max-jobs = auto" >> ~/.config/nix/nix.conf
+ENV PATH="/nix/var/nix/profiles/default/bin:/home/$USERNAME/.nix-profile/bin:/home/$USERNAME/.local/bin:${PATH}"
 
 RUN curl -sSf https://raw.githubusercontent.com/infraflakes/kiru/main/install.sh | sh
-
 RUN curl -sSf https://raw.githubusercontent.com/infraflakes/sutils/main/install.sh | sh
 
 RUN git clone --depth=1 https://github.com/infraflakes/devenv ~/.config/kiru
