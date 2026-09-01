@@ -3,8 +3,12 @@ ARG USERNAME=nixenv
 FROM debian:bookworm-slim
 ARG USERNAME
 
+ENV TZ=Asia/Ho_Chi_Minh
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl fish git xz-utils ca-certificates procps locales \
+    curl fish git xz-utils ca-certificates procps locales tzdata \
+    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
+    && dpkg-reconfigure -f noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/* \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen
@@ -13,11 +17,9 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-RUN useradd -m -s /bin/fish -u 1000 $USERNAME && \
-    mkdir -m 0755 /nix && chown $USERNAME:$USERNAME /nix
+RUN useradd -m -s /bin/fish -u 1000 $USERNAME
 
-RUN curl -sSfL https://install.lix.systems/lix | sh -s -- install linux --init none --no-confirm \
-    && chown -R $USERNAME:$USERNAME /nix
+RUN curl -sSfL https://install.lix.systems/lix | sh -s -- install linux --init none --no-confirm && chown -R $USERNAME:$USERNAME /nix
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
